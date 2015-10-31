@@ -33,3 +33,4 @@ proguard/
 .idea/
 
 .DS_Store
+mobile/src/main/res/values/sdk_keys.xml
