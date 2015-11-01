@@ -1,4 +1,4 @@
-package net.ralphpina.activitymapper.events;
+package net.ralphpina.activitymapper.events.navigation;
 
 import android.location.Location;
 

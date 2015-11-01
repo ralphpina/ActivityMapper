@@ -1,4 +1,4 @@
-package net.ralphpina.activitymapper;
+package net.ralphpina.activitymapper.activities;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
@@ -11,13 +11,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.parse.LogOutCallback;
-import com.parse.ParseException;
-import com.parse.ParseUser;
-
+import net.ralphpina.activitymapper.Account;
+import net.ralphpina.activitymapper.R;
 import net.ralphpina.activitymapper.events.EventBusMethod;
-import net.ralphpina.activitymapper.events.NavigateToLoginEvent;
-import net.ralphpina.activitymapper.events.NavigateToMapEvent;
+import net.ralphpina.activitymapper.events.login.LogoutEvent;
+import net.ralphpina.activitymapper.events.navigation.NavigateToMapEvent;
 import net.ralphpina.activitymapper.fragments.LoginFragment;
 import net.ralphpina.activitymapper.fragments.MapFragment;
 
@@ -30,8 +28,8 @@ import de.greenrobot.event.EventBus;
 
 public class MainActivity extends AppCompatActivity {
 
-    public final static int LOGIN  = 0;
-    public final static int MAP    = 2;
+    public final static int LOGIN = 0;
+    public final static int MAP   = 2;
 
     @Retention(RetentionPolicy.CLASS)
     @IntDef({LOGIN,
@@ -51,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Bind(R.id.toolbar)
-    Toolbar     _toolbar;
+    Toolbar _toolbar;
 
     @UiState
     private int _uiState;
@@ -75,13 +73,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        EventBus.getDefault().register(this);
+        EventBus.getDefault()
+                .register(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        EventBus.getDefault().unregister(this);
+        EventBus.getDefault()
+                .unregister(this);
     }
 
     // ===== MENU ==================================================================================
@@ -108,23 +108,8 @@ public class MainActivity extends AppCompatActivity {
             final ProgressDialog dialog = new ProgressDialog(this);
             dialog.setMessage(getString(R.string.progress_logout));
             dialog.show();
-            ParseUser.logOutInBackground(new LogOutCallback() {
-                @Override
-                public void done(ParseException e) {
-                    if (e != null) {
-                        Snackbar.make(_toolbar,
-                                      e.getMessage(),
-                                      Snackbar.LENGTH_LONG)
-                                .show();
-                    } else {
-                        AMApplication.get()
-                                     .locationManager()
-                                     .disconnect();
-                        _uiState = LOGIN;
-                        navigateToFragment(BACKWARDS);
-                    }
-                }
-            });
+            Account.get()
+                   .logout();
             return true;
         }
 
@@ -136,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
     @UiState
     private int determineUiState() {
         // Check if there is current user info
-        if (ParseUser.getCurrentUser() != null) {
+        if (Account.get().isUserVerified()) {
             return MAP;
         } else {
             return LOGIN;
@@ -176,9 +161,17 @@ public class MainActivity extends AppCompatActivity {
     // ==== EVENTS =================================================================================
 
     @EventBusMethod
-    public void onEventMainThread(NavigateToLoginEvent event) {
-        _uiState = LOGIN;
-        navigateToFragment(BACKWARDS);
+    public void onEventMainThread(LogoutEvent event) {
+        if (event.getParseException() != null) {
+            Snackbar.make(_toolbar,
+                          event.getParseException()
+                               .getMessage(),
+                          Snackbar.LENGTH_LONG)
+                    .show();
+        } else {
+            _uiState = LOGIN;
+            navigateToFragment(BACKWARDS);
+        }
     }
 
     @EventBusMethod

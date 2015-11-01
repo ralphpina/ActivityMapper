@@ -6,19 +6,20 @@ import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.VisibleForTesting;
-import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.ActivityRecognitionResult;
+import com.google.android.gms.location.DetectedActivity;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseUser;
 
 import net.ralphpina.activitymapper.AMApplication;
-import net.ralphpina.activitymapper.events.LocationChangedEvent;
+import net.ralphpina.activitymapper.Account;
+import net.ralphpina.activitymapper.events.navigation.LocationChangedEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,9 @@ import java.util.List;
 import de.greenrobot.event.EventBus;
 
 import static com.google.android.gms.location.ActivityRecognition.ActivityRecognitionApi;
+import static com.google.android.gms.location.DetectedActivity.STILL;
+import static com.google.android.gms.location.DetectedActivity.TILTING;
+import static com.google.android.gms.location.DetectedActivity.UNKNOWN;
 import static com.google.android.gms.location.LocationServices.FusedLocationApi;
 
 public class LocationManager {
@@ -60,6 +64,18 @@ public class LocationManager {
     private final List<ActivityRecognitionResult> _detectedActivitiesCache;
     private       boolean                         _apisConnected;
 
+    @VisibleForTesting
+    protected LocationManager() {
+        _locationCache = new ArrayList<>();
+        _detectedActivitiesCache = new ArrayList<>();
+
+        _googleApiClient = null;
+        _fusedLocationListener = null;
+        _activityPendingIntent = null;
+
+        connect();
+    }
+
     public LocationManager(Context context) {
         _locationCache = new ArrayList<>();
         _detectedActivitiesCache = new ArrayList<>();
@@ -68,7 +84,6 @@ public class LocationManager {
                 .addApi(LocationServices.API)
                 .addApi(ActivityRecognition.API)
                 .addConnectionCallbacks(new GoogleApiConnectionCallbacks())
-                .addOnConnectionFailedListener(new GoogleApiConnectionFailedListener())
                 .build();
 
         _fusedLocationListener = new FusedLocationListener();
@@ -88,7 +103,8 @@ public class LocationManager {
     // ----- CONNECT -------------------------------------------------------------------------------
 
     public void connect() {
-        if (ParseUser.getCurrentUser() == null) {
+        if (Account.get()
+                   .isUserVerified()) {
             return;
         }
         if (isTestEnvironment()) {
@@ -117,6 +133,7 @@ public class LocationManager {
         if (_googleApiClient.isConnected() || mIsTestClientConnected) {
             _apisConnected = false;
             disconnectApis();
+            disconnectClient();
         }
     }
 
@@ -183,16 +200,62 @@ public class LocationManager {
         }
     }
 
-    // ----- LOCATION ------------------------------------------------------------------------------
+    // ===== LOCATION EVENTS =======================================================================
 
     public void onLocationEvent(Location location) {
-        Log.e(TAG, "=== onLocationEvent() === location = " + location);
+        if (_locationCache.size() == 10) {
+            _locationCache.remove(0);
+        }
+        _locationCache.add(location);
+
+        if (isActive()) {
+            Record record = new Record();
+            record.setActivityType(getLastDetectedActivityType());
+            record.setUser(ParseUser.getCurrentUser());
+            record.setLocation(new ParseGeoPoint(location.getLatitude(), location.getLongitude()));
+            Account.get()
+                   .addRecord(record);
+            EventBus.getDefault()
+                    .post(new LocationChangedEvent(location));
+        }
     }
 
-    // ----- ACTIVITY ------------------------------------------------------------------------------
+    // ===== ACTIVITY EVENTS =======================================================================
 
     public void onActivitiesDetected(ActivityRecognitionResult recognitionResult) {
-        Log.e(TAG, "=== onActivitiesDetected() === recognitionResult = " + recognitionResult);
+        // if you tilt the phone, this will come through, ignore it
+        if (onlyTilting(recognitionResult.getProbableActivities())) {
+            return;
+        }
+
+        if (_detectedActivitiesCache.size() == 5) {
+            _detectedActivitiesCache.remove(0);
+        }
+        _detectedActivitiesCache.add(recognitionResult);
+    }
+
+    private boolean onlyTilting(List<DetectedActivity> detectedActivities) {
+        return detectedActivities.size() == 1 && detectedActivities.get(0)
+                                                                   .getType() == TILTING;
+    }
+
+    private boolean isActive() {
+        return _detectedActivitiesCache.size() != 0 && !isUnknown(getLastDetectedActivityType()) && !isStill(
+                getLastDetectedActivityType());
+    }
+
+    private boolean isUnknown(int activity) {
+        return activity == UNKNOWN;
+    }
+
+    private boolean isStill(int activity) {
+        return activity == STILL;
+    }
+
+    private int getLastDetectedActivityType() {
+        return _detectedActivitiesCache.get(_detectedActivitiesCache.size() - 1)
+                                       .getMostProbableActivity()
+                                       .getType();
     }
 
     // ===== CALLBACKS =============================================================================
@@ -210,19 +273,6 @@ public class LocationManager {
         }
     }
 
-    private class GoogleApiConnectionFailedListener implements GoogleApiClient.OnConnectionFailedListener {
-
-        @Override
-        public void onConnectionFailed(ConnectionResult connectionResult) {
-            try {
-                // TODO noop?
-            } catch (NullPointerException e) {
-                // noop - this will happen if the Google API client is initialized before the
-                // Account's constructor returns. Just ignore it.
-            }
-        }
-    }
-
     /**
      * Only used in Map to send location message
      */
@@ -232,8 +282,6 @@ public class LocationManager {
         public void onLocationChanged(Location location) {
             try {
                 onLocationEvent(location);
-                EventBus.getDefault()
-                        .post(new LocationChangedEvent(location));
             } catch (NullPointerException e) {
                 // noop - this will happen if the Google API client is initialized before the
                 // Account's constructor returns. Just ignore it.
@@ -248,7 +296,8 @@ public class LocationManager {
     private boolean mIsTestActivityConnected;
 
     private boolean isTestEnvironment() {
-        return AMApplication.get().isTestEnvironment();
+        return AMApplication.get()
+                            .isTestEnvironment();
     }
 
     @VisibleForTesting

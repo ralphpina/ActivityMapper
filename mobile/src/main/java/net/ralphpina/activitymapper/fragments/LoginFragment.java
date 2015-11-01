@@ -12,14 +12,11 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.parse.LogInCallback;
-import com.parse.ParseException;
-import com.parse.ParseUser;
-import com.parse.SignUpCallback;
-
-import net.ralphpina.activitymapper.AMApplication;
+import net.ralphpina.activitymapper.Account;
 import net.ralphpina.activitymapper.R;
-import net.ralphpina.activitymapper.events.NavigateToMapEvent;
+import net.ralphpina.activitymapper.events.EventBusMethod;
+import net.ralphpina.activitymapper.events.login.LoginEvent;
+import net.ralphpina.activitymapper.events.navigation.NavigateToMapEvent;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -45,6 +42,7 @@ public class LoginFragment extends Fragment {
     Button   _buttonSignup;
 
     private boolean _isSigningUp;
+    private ProgressDialog mDialog;
 
     public LoginFragment() {
         // Required empty public constructor
@@ -56,6 +54,20 @@ public class LoginFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_login, container, false);
         ButterKnife.bind(this, root);
         return root;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault()
+                .register(this);
+    }
+
+    @Override
+    public void onPause() {
+        EventBus.getDefault()
+                .unregister(this);
+        super.onPause();
     }
 
     @OnClick(R.id.button_login)
@@ -126,69 +138,32 @@ public class LoginFragment extends Fragment {
         }
 
         // Set up a progress dialog
-        final ProgressDialog dialog = new ProgressDialog(getActivity());
+        mDialog = new ProgressDialog(getActivity());
         if (_isSigningUp) {
-            dialog.setMessage(getString(R.string.progress_signup));
+            mDialog.setMessage(getString(R.string.progress_signup));
         } else {
-            dialog.setMessage(getString(R.string.progress_login));
+            mDialog.setMessage(getString(R.string.progress_login));
         }
-        dialog.show();
+        mDialog.show();
+        Account.get()
+               .login(_isSigningUp, username, password);
+    }
 
-        if (_isSigningUp) {
-            // Set up a new Parse user
-            ParseUser user = new ParseUser();
-            user.setUsername(username);
-            user.setPassword(password);
+    // ===== EVENTS ================================================================================
 
-            // Call the Parse signup method
-            user.signUpInBackground(new SignUpCallback() {
-                @Override
-                public void done(ParseException e) {
-                    dialog.dismiss();
-                    if (e != null) {
-                        // Show the error message
-                        Snackbar.make(_buttonLogin,
-                                      e.getMessage(),
-                                      Snackbar.LENGTH_LONG)
-                                .show();
-                    } else {
-                        // Start an intent for the dispatch activity
-                        EventBus.getDefault()
-                                .post(new NavigateToMapEvent());
-                    }
-                }
-            });
+    @EventBusMethod
+    public void onEventMainThread(LoginEvent event) {
+        mDialog.dismiss();
+        mDialog = null;
+        if (event.getParseException() != null) {
+            // Show the error message
+            Snackbar.make(_buttonLogin,
+                          event.getParseException().getMessage(),
+                          Snackbar.LENGTH_LONG)
+                    .show();
         } else {
-            // TODO - I should use Dagger 2 for this, otherwise, I will need to mock out
-            // TODO - all of parse
-//            if (((AMApplication) getActivity().getApplicationContext()).isTestEnvironment()) {
-//                Snackbar.make(_buttonLogin,
-//                              "Yes, we are in test land",
-//                              Snackbar.LENGTH_LONG)
-//                        .show();
-//            } else {
-            // Call the Parse login method
-            ParseUser.logInInBackground(username, password, new LogInCallback() {
-                @Override
-                public void done(ParseUser user, ParseException e) {
-                    dialog.dismiss();
-                    if (e != null) {
-                        // Show the error message
-                        Snackbar.make(_buttonLogin,
-                                      e.getMessage(),
-                                      Snackbar.LENGTH_LONG)
-                                .show();
-                    } else {
-                        // Start an intent for the dispatch activity
-                        AMApplication.get()
-                                     .locationManager()
-                                     .connect();
-                        EventBus.getDefault()
-                                .post(new NavigateToMapEvent());
-                    }
-                }
-            });
-//            }
+            EventBus.getDefault()
+                    .post(new NavigateToMapEvent());
         }
     }
 }

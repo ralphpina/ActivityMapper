@@ -2,6 +2,8 @@ package net.ralphpina.activitymapper;
 
 import android.support.test.rule.ActivityTestRule;
 
+import net.ralphpina.activitymapper.activities.MainActivity;
+
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -36,14 +38,4 @@ public class LoginFragmentTest extends BaseTest {
                 "Please enter a username, and enter a password.")))
                                                                  .check(matches(isDisplayed()));
     }
-
-//    @Test
-//    public void check_we_are_in_text_land() throws Exception {
-//        onView(withId(R.id.edit_text_username)).perform(typeText("ralph.pina@gmail.com"));
-//        onView(withId(R.id.edit_text_password)).perform(typeText("SomePassword"));
-//        onView(withId(R.id.button_login)).perform(click());
-//        onView(withId(android.support.design.R.id.snackbar_text)).check(matches(withText(
-//                "Yes, we are in test land")))
-//                                                                 .check(matches(isDisplayed()));
-//    }
 }
