@@ -7,6 +7,7 @@ Maps your activity. Uses Parse for persistence and MapBox to display maps.
 - Service to track location and activity
 - Activity recognition using Google Play Services
 - Persist data to Parse
+- Add Marshmellow permissions manager
 - Display data for last 24 hours in map
 - Different color lines in map for different activities
 - Different filters for times and activities
