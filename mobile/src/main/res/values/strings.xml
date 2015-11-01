@@ -1,4 +1,19 @@
 <resources>
     <string name="app_name">Activity Mapper</string>
     <string name="action_settings">Settings</string>
+    <string name="login">Log in</string>
+    <string name="signup">Sign up</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="password_again">Password Again</string>
+
+    <!-- Login error -->
+    <string name="error_intro">"Please "</string>
+    <string name="error_blank_username">enter a username</string>
+    <string name="error_blank_password">enter a password</string>
+    <string name="error_mismatched_passwords">enter the same password twice</string>
+    <string name="error_join">", and "</string>
+    <string name="error_end">.</string>
+    <string name="progress_login">Logging you in&#8230;</string>
+    <string name="progress_signup">Signing you up&#8230;</string>
 </resources>
