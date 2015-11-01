@@ -2,7 +2,16 @@
 Maps your activity. Uses Parse for persistence and MapBox to display maps.
 
 ## Running
-To run this project you will need to add your own [sdk_keys.xml](mobile/src/main/res/values/sdk_keys.xml) file. This file is gitignored, so it will not sync when you pull this repo. As you can see, this file is used to store keys to your MapBox and Parse accounts.
+To run this project you will need to add your own ```sdk_keys.xml``` file in ```mobile/src/main/res/values/sdk_keys.xml```. This file is gitignored, so it will not sync when you pull this repo. As you can see, this file is used to store keys to your MapBox and Parse accounts.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>		
+<resources>		
+  <string name="map_box_sdk_token">Your MapBox SDK Token</string>		
+  <string name="parse_application_id">Your Parse Application Id</string>		
+  <string name="parse_client_key">Your Parse Client Key</string>		
+</resources>
+```
 
 ## About
 This is just a side project. It is used to show potential companies my work, and to learn about various Android subjects I am interested in. Yes this app may be consider creepy since it will collect your location and activity type and sync it to a cloud provider. However, since you'll be building it with your own Parse keys you'll have full control of your data. 
