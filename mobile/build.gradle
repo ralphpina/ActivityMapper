@@ -24,9 +24,12 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     wearApp project(':wear')
+    // Support Libs
     compile 'com.android.support:appcompat-v7:23.1.0'
-    compile 'com.google.android.gms:play-services:8.1.0'
     compile 'com.android.support:design:23.1.0'
+    // Google Play Services
+    compile 'com.google.android.gms:play-services:8.1.0'
+    compile 'com.google.android.gms:play-services-location:8.1.0'
     // Mapbox
     compile ('com.mapbox.mapboxsdk:mapbox-android-sdk:2.2.0@aar'){
         transitive=true

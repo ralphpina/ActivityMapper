@@ -117,6 +117,9 @@ public class MainActivity extends AppCompatActivity {
                                       Snackbar.LENGTH_LONG)
                                 .show();
                     } else {
+                        AMApplication.get()
+                                     .locationManager()
+                                     .disconnect();
                         _uiState = LOGIN;
                         navigateToFragment(BACKWARDS);
                     }

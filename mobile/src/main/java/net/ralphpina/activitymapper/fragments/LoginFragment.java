@@ -17,6 +17,7 @@ import com.parse.ParseException;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
+import net.ralphpina.activitymapper.AMApplication;
 import net.ralphpina.activitymapper.R;
 import net.ralphpina.activitymapper.events.NavigateToMapEvent;
 
@@ -166,24 +167,27 @@ public class LoginFragment extends Fragment {
 //                              Snackbar.LENGTH_LONG)
 //                        .show();
 //            } else {
-                // Call the Parse login method
-                ParseUser.logInInBackground(username, password, new LogInCallback() {
-                    @Override
-                    public void done(ParseUser user, ParseException e) {
-                        dialog.dismiss();
-                        if (e != null) {
-                            // Show the error message
-                            Snackbar.make(_buttonLogin,
-                                          e.getMessage(),
-                                          Snackbar.LENGTH_LONG)
-                                    .show();
-                        } else {
-                            // Start an intent for the dispatch activity
-                            EventBus.getDefault()
-                                    .post(new NavigateToMapEvent());
-                        }
+            // Call the Parse login method
+            ParseUser.logInInBackground(username, password, new LogInCallback() {
+                @Override
+                public void done(ParseUser user, ParseException e) {
+                    dialog.dismiss();
+                    if (e != null) {
+                        // Show the error message
+                        Snackbar.make(_buttonLogin,
+                                      e.getMessage(),
+                                      Snackbar.LENGTH_LONG)
+                                .show();
+                    } else {
+                        // Start an intent for the dispatch activity
+                        AMApplication.get()
+                                     .locationManager()
+                                     .connect();
+                        EventBus.getDefault()
+                                .post(new NavigateToMapEvent());
                     }
-                });
+                }
+            });
 //            }
         }
     }
