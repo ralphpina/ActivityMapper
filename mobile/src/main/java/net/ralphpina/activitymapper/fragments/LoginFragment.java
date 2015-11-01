@@ -1,12 +1,14 @@
 package net.ralphpina.activitymapper.fragments;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -76,6 +78,10 @@ public class LoginFragment extends Fragment {
     }
 
     private void login() {
+        // hide keyboard
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(_editTextUsername.getWindowToken(), 0);
+
         String username = _editTextUsername.getText()
                                            .toString()
                                            .trim();
