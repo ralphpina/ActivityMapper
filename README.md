@@ -1,11 +1,17 @@
 # ActivityMapper
 Maps your activity. Uses Parse for persistence and MapBox to display maps.
 
+## About
+This is just a side project.
+
+## Technologies Used
+
+
 ##TODO
 
-- Build model for Parse
-- Service to track location and activity
-- Activity recognition using Google Play Services
+- ~~Build model for Parse~~
+- ~~Service to track location and activity~~
+- ~~Activity recognition using Google Play Services~~
 - Persist data to Parse
 - Add Marshmellow permissions manager
 - Display data for last 24 hours in map
@@ -13,4 +19,4 @@ Maps your activity. Uses Parse for persistence and MapBox to display maps.
 - Different filters for times and activities
 - Android Wear activity to display last 24 hours
 - Adding Dagger 2 for testing
-- Mock Parse during testing
+- ~~Mock Parse during testing~~
