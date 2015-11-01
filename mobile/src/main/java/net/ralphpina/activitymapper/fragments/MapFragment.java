@@ -1,7 +1,7 @@
 package net.ralphpina.activitymapper.fragments;
 
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,8 +33,8 @@ public class MapFragment extends Fragment {
         ButterKnife.bind(this, root);
 
         _mapView.setStyleUrl(Style.MAPBOX_STREETS);
-        _mapView.setCenterCoordinate(new LatLng(40.73581, -73.99155));
-        _mapView.setZoomLevel(11);
+        _mapView.setZoomLevel(12);
+        _mapView.setMyLocationEnabled(true);
         _mapView.onCreate(savedInstanceState);
         return root;
     }
@@ -61,6 +61,14 @@ public class MapFragment extends Fragment {
     public void onResume() {
         super.onResume();
         _mapView.onResume();
+        if (_mapView.getMyLocation() != null) {
+            final double lat = _mapView.getMyLocation()
+                                       .getLatitude();
+            final double lng = _mapView.getMyLocation()
+                                       .getLongitude();
+            LatLng latLng = new LatLng(lat, lng);
+            _mapView.setCenterCoordinate(latLng);
+        }
     }
 
     @Override
