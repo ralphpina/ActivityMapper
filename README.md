@@ -1,6 +1,9 @@
 # ActivityMapper
 Maps your activity. Uses Parse for persistence and MapBox to display maps.
 
+## Running
+To run this project you will need to add your own [sdk_keys.xml](mobile/src/main/res/values/sdk_keys.xml) file. This file is gitignored, so it will not sync when you pull this repo.
+
 ## About
 This is just a side project.
 
