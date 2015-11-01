@@ -14,6 +14,13 @@ This is just a side project. It is used to show potential companies my work, and
 - A persistent service to track the data.
 - A Broadcast receiever to start the service on boot in case the phone is turned off.
 
+***Testing:***
+
+Testing is famously difficult in Android. While this app is nowhere cutting age in this area, it is being tested.
+- Android Instrumentation testing using newer libraries and JUnit 4.
+- Android JUnit testing - not much of it.
+- While I have used Robolectric and Robotium in the past, and I am a big fan, I am not currently using them and instead using the stock tools provided by the Android team.
+
 ##TODO
 - ~~Build model for Parse~~
 - ~~Service to track location and activity~~
