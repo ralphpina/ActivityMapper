@@ -17,7 +17,6 @@ import com.google.android.gms.location.LocationServices;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseUser;
 
-import net.ralphpina.activitymapper.AMApplication;
 import net.ralphpina.activitymapper.Account;
 import net.ralphpina.activitymapper.events.navigation.LocationChangedEvent;
 
@@ -31,6 +30,7 @@ import static com.google.android.gms.location.DetectedActivity.STILL;
 import static com.google.android.gms.location.DetectedActivity.TILTING;
 import static com.google.android.gms.location.DetectedActivity.UNKNOWN;
 import static com.google.android.gms.location.LocationServices.FusedLocationApi;
+import static net.ralphpina.activitymapper.Account.isTestEnvironment;
 
 public class LocationManager {
 
@@ -43,11 +43,6 @@ public class LocationManager {
     // - Gonna set it to the highest since we only track when the app is in the foreground, so hopefully
     // - battery life won't take a huge hit R.Pina 20150911
     public static final long DETECTION_INTERVAL_IN_MILLISECONDS = 0;
-
-    public static final int MESSAGE_NO_LONGER_DRIVING_BUFFER = 0x01;
-
-    public static final int FIFTEEN_SECONDS_MILLIS = 15 * 1000;
-    public static final int THIRTY_SECONDS_MILLIS  = 30 * 1000;
 
     private static final long LOCATION_REQUEST_INTERVAL = 1000 * 60; // ms
 
@@ -103,8 +98,8 @@ public class LocationManager {
     // ----- CONNECT -------------------------------------------------------------------------------
 
     public void connect() {
-        if (Account.get()
-                   .isUserVerified()) {
+        if (!Account.get()
+                    .isUserVerified()) {
             return;
         }
         if (isTestEnvironment()) {
@@ -294,11 +289,6 @@ public class LocationManager {
     private boolean mIsTestClientConnected;
     private boolean mIsTestLocationConnected;
     private boolean mIsTestActivityConnected;
-
-    private boolean isTestEnvironment() {
-        return AMApplication.get()
-                            .isTestEnvironment();
-    }
 
     @VisibleForTesting
     public boolean isTestClientConnected() {

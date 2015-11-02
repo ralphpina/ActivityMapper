@@ -22,19 +22,20 @@ import de.greenrobot.event.EventBus;
 // TODO use Dagger2 to inject a different object during testing
 public class Account {
 
-    private static Account         mAccount;
-    private        AMApplication   mApplication;
-    private        MockParse       mMockParse;
+    private static Account       mAccount;
+    private        AMApplication mApplication;
+    private        MockParse     mMockParse;
 
     @VisibleForTesting
     protected Account() {
         mAccount = this;
+        mMockParse = new MockParse();
     }
 
     public Account(AMApplication application) {
         mApplication = application;
         mAccount = this;
-        if (mApplication.isTestEnvironment()) {
+        if (isInstrumentationTest()) {
             mMockParse = new MockParse();
         }
         if (isUserVerified()) {
@@ -58,9 +59,11 @@ public class Account {
     public void login(boolean isSigningUp, @NonNull String username, @NonNull String password) {
         if (mMockParse != null) {
             mMockParse.setIsLoggedIn(true);
-            LocationTrackingService.start();
-            EventBus.getDefault()
-                    .post(new LoginEvent(null));
+            if (isInstrumentationTest()) {
+                LocationTrackingService.start();
+                EventBus.getDefault()
+                        .post(new LoginEvent(null));
+            }
         } else {
             if (isSigningUp) {
                 // Set up a new Parse user
@@ -103,9 +106,11 @@ public class Account {
     public void logout() {
         if (mMockParse != null) {
             mMockParse.setIsLoggedIn(false);
-            LocationTrackingService.stop();
-            EventBus.getDefault()
-                    .post(new LogoutEvent(null));
+            if (isInstrumentationTest()) {
+                LocationTrackingService.stop();
+                EventBus.getDefault()
+                        .post(new LogoutEvent(null));
+            }
         } else {
             ParseUser.logOutInBackground(new LogOutCallback() {
                 @Override
@@ -127,7 +132,7 @@ public class Account {
 
     public void addRecord(Record record) {
         if (mMockParse != null) {
-            addRecord(record);
+            mMockParse.addRecord(record);
         } else {
             record.saveEventually();
         }
@@ -155,6 +160,16 @@ public class Account {
         public void addRecord(Record record) {
             mRecords.add(record);
         }
+    }
 
+    private boolean isInstrumentationTest() {
+        return mApplication != null && mApplication.isTestEnvironment();
+    }
+
+    public static boolean isTestEnvironment() {
+        // in unit tests application will be null, however, it will be there
+        // in instrumentation tests
+        return AMApplication.get() == null || AMApplication.get()
+                                                           .isTestEnvironment();
     }
 }
