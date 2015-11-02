@@ -34,3 +34,6 @@ proguard/
 
 .DS_Store
 mobile/src/main/res/values/sdk_keys.xml
+
+# Allow one APK
+!activity-mapper-debug.apk
