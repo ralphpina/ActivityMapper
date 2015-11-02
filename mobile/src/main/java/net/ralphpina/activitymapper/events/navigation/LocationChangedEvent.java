@@ -1,16 +1,18 @@
 package net.ralphpina.activitymapper.events.navigation;
 
-import android.location.Location;
+import net.ralphpina.activitymapper.location.Record;
+
+import java.util.List;
 
 public class LocationChangedEvent {
 
-    private final Location _location;
+    private final List<Record> mRecords;
 
-    public LocationChangedEvent(Location location) {
-        _location = location;
+    public LocationChangedEvent(List<Record> records) {
+        mRecords = records;
     }
 
-    public Location getLocation() {
-        return _location;
+    public List<Record> getRecords() {
+        return mRecords;
     }
 }

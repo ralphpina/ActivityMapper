@@ -18,4 +18,8 @@
     <string name="progress_login">Logging you in&#8230;</string>
     <string name="progress_signup">Signing you up&#8230;</string>
     <string name="progress_logout">Logging you out&#8230;</string>
+    <string name="running">RUNNING</string>
+    <string name="walking">WALKING</string>
+    <string name="bicycle">BICYCLE</string>
+    <string name="vehicle">VEHICLE</string>
 </resources>

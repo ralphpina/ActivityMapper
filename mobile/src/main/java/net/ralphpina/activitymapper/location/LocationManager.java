@@ -18,17 +18,17 @@ import com.parse.ParseGeoPoint;
 import com.parse.ParseUser;
 
 import net.ralphpina.activitymapper.Account;
-import net.ralphpina.activitymapper.events.navigation.LocationChangedEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import de.greenrobot.event.EventBus;
-
 import static com.google.android.gms.location.ActivityRecognition.ActivityRecognitionApi;
+import static com.google.android.gms.location.DetectedActivity.ON_FOOT;
 import static com.google.android.gms.location.DetectedActivity.STILL;
 import static com.google.android.gms.location.DetectedActivity.TILTING;
 import static com.google.android.gms.location.DetectedActivity.UNKNOWN;
+import static com.google.android.gms.location.DetectedActivity.WALKING;
+import static com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY;
 import static com.google.android.gms.location.LocationServices.FusedLocationApi;
 import static net.ralphpina.activitymapper.Account.isTestEnvironment;
 
@@ -44,13 +44,15 @@ public class LocationManager {
     // - battery life won't take a huge hit R.Pina 20150911
     public static final long DETECTION_INTERVAL_IN_MILLISECONDS = 0;
 
-    private static final long LOCATION_REQUEST_INTERVAL = 1000 * 60; // ms
+    private static final long  LOCATION_REQUEST_INTERVAL   = 1000 * 60; // ms
+    private static final float LOCATION_ACCURACY_THRESHOLD = 35f; // meters
 
     private static final LocationRequest REQUEST = LocationRequest.create()
                                                                   .setInterval(
                                                                           LOCATION_REQUEST_INTERVAL)
                                                                   .setFastestInterval(2000)
-                                                                  .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+                                                                  .setPriority(
+                                                                          PRIORITY_HIGH_ACCURACY);
 
     private final GoogleApiClient                 _googleApiClient;
     private final FusedLocationListener           _fusedLocationListener;
@@ -198,20 +200,25 @@ public class LocationManager {
     // ===== LOCATION EVENTS =======================================================================
 
     public void onLocationEvent(Location location) {
-        if (_locationCache.size() == 10) {
-            _locationCache.remove(0);
-        }
-        _locationCache.add(location);
+        if (location.getAccuracy() < LOCATION_ACCURACY_THRESHOLD) {
+            if (_locationCache.size() == 10) {
+                _locationCache.remove(0);
+            }
+            _locationCache.add(location);
 
-        if (isActive()) {
-            Record record = new Record();
-            record.setActivityType(getLastDetectedActivityType());
-            record.setUser(ParseUser.getCurrentUser());
-            record.setLocation(new ParseGeoPoint(location.getLatitude(), location.getLongitude()));
-            Account.get()
-                   .addRecord(record);
-            EventBus.getDefault()
-                    .post(new LocationChangedEvent(location));
+            if (isActive()) {
+                Record record = new Record();
+                int lastDetectedActivity = getLastDetectedActivityType();
+                if (lastDetectedActivity == ON_FOOT) {
+                    lastDetectedActivity = WALKING;
+                }
+                record.setActivityType(lastDetectedActivity);
+                record.setUser(ParseUser.getCurrentUser());
+                record.setLocation(new ParseGeoPoint(location.getLatitude(),
+                                                     location.getLongitude()));
+                Account.get()
+                       .addRecord(record);
+            }
         }
     }
 
