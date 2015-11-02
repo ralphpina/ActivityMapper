@@ -42,5 +42,4 @@ Testing is famously difficult in Android. While this app is nowhere cutting age 
 - Android Wear activity to display last 24 hours
 - Adding Dagger 2 for testing
 - ~~Mock Parse during testing~~
-- Filter FusedLocationManager to throw out bad data. It shouldn't have these jagged lines:
-![recorded walk](https://www.evernote.com/l/ABAMV20CcElCeKgdn9WAZ0tFC8Fn9deF-Qc)
+- Filter FusedLocationManager to throw out bad data. It shouldn't have these jagged lines: https://www.evernote.com/l/ABAMV20CcElCeKgdn9WAZ0tFC8Fn9deF-Qc
